@@ -59,16 +59,31 @@ export function track(target,key) {
     depsMap.set(key,dep)
   }
   // 已经在dep 中
-  if(dep.has(activeEffect)) return
-  dep.add(activeEffect)
-  activeEffect.deps.push(dep)
+  trackEffects(dep)
 
 }
+export function trackEffects(dep) {
+  // 用 dep 来存放所有的 effect
 
+  // TODO
+  // 这里是一个优化点
+  // 先看看这个依赖是不是已经收集了，
+  // 已经收集的话，那么就不需要在收集一次了
+  // 可能会影响 code path change 的情况
+  // 需要每次都 cleanupEffect
+  // shouldTrack = !dep.has(activeEffect!);
+  if (!dep.has(activeEffect)) {
+    dep.add(activeEffect);
+    (activeEffect as any).deps.push(dep);
+  }
+}
 export function trigger(target,key) {
   let depsMap = targetMap.get(target)
   let dep = depsMap.get(key)
+  triggerEffect(dep)
 
+}
+export function  triggerEffect(dep) {
   for(let effect of dep) {
     if(effect.scheduler){
       effect.scheduler()
@@ -78,8 +93,7 @@ export function trigger(target,key) {
   
   }
 }
-
-function isTracking() {
+export function isTracking() {
   return shouldTrack && activeEffect !== undefined
 }
 export function effect(fn,options:any={}) {
@@ -99,18 +113,3 @@ export function stop(runner) {
 
 }
 
-export function trackEffects(dep) {
-  // 用 dep 来存放所有的 effect
-
-  // TODO
-  // 这里是一个优化点
-  // 先看看这个依赖是不是已经收集了，
-  // 已经收集的话，那么就不需要在收集一次了
-  // 可能会影响 code path change 的情况
-  // 需要每次都 cleanupEffect
-  // shouldTrack = !dep.has(activeEffect!);
-  if (!dep.has(activeEffect)) {
-    dep.add(activeEffect);
-    (activeEffect as any).deps.push(dep);
-  }
-}
