@@ -8,8 +8,11 @@ export const App = {
       {
         id: "root",
         class: ["red", "hard"],
+        onClick() {
+          console.log("click");
+        },
       },
-      this.msg
+      this.msg + "1123"
       // [
       //   h("p", { class: "red" }, "hi"),
       //   h("p", { calss: "green" }, "mini-vue"),

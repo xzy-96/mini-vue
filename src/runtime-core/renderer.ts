@@ -1,4 +1,5 @@
 import { isObject } from "../shared/index";
+import { ShapeFlags } from "../shared/ShapeFlage";
 import { createComponentInstance, setupComponent } from "./component";
 
 export function render(vnode, container) {
@@ -9,11 +10,11 @@ function patch(vnode, container) {
   // 去处理 组件
   // patch 判断vnde 是不是一个 element
   // 是element 就去处理element
-  console.log(vnode.type);
-
-  if (typeof vnode.type === "string") {
+  console.log(vnode.type,ShapeFlags.ELEMENT);
+  const {shapeFlag} = vnode
+  if (shapeFlag & ShapeFlags.ELEMENT) {
     processElement(vnode, container);
-  } else if (isObject(vnode.type)) {
+  } else if (shapeFlag & ShapeFlags.STATEFUL_COMMPONENT) {
     processComponent(vnode, container);
   }
 }
@@ -47,15 +48,19 @@ function mountElement(vnode, container) {
 
   const el = (vnode.el = document.createElement(vnode.type));
   // string array
-  const { children, props } = vnode;
-  if (!Array.isArray(children)) {
+  const { children, props,shapeFlag } = vnode;
+  if (shapeFlag & ShapeFlags.TEXT_CHILREN) {
     el.textContent = children;
-  } else {
+  } else if(shapeFlag & ShapeFlags.ARRAY_CHILREN) {
     mountChilren(vnode, el);
   }
 
   for (const key in props) {
-    el.setAttribute(key, props[key]);
+    const val = props[key]
+    if(key === 'onClick') {
+      el.addEventListener('click',val)
+    }
+    el.setAttribute(key, val);
   }
   container.append(el);
   // document.body.append(el);
