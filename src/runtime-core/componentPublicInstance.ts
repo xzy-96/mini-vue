@@ -19,4 +19,11 @@ export const PublicInstanceProxyHandles = {
     const publicGeeter = publicPropertiesMap[key];
     if (publicGeeter) publicGeeter(insetance);
   },
+  // set({ _: insetance }, key, value) {
+  //   debugger;
+  //   const { setupState, props } = insetance;
+  //   if (key in setupState) {
+  //     return value;
+  //   }
+  // },
 };

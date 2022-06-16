@@ -77,6 +77,7 @@ export function trackEffects(dep) {
 }
 export function trigger(target, key) {
   let depsMap = targetMap.get(target);
+  if (!depsMap) return;
   let dep = depsMap.get(key);
   triggerEffect(dep);
 }

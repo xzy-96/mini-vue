@@ -29,6 +29,7 @@ function mountComponent(initialVnode, container) {
 }
 
 function setupRenderEffect(instance, initialVnode, container) {
+  debugger;
   const { proxy } = instance;
   const subTree = instance.render.call(proxy);
   patch(subTree, container);
