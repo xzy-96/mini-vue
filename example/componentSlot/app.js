@@ -1,4 +1,4 @@
-import { h, reactive } from "../../lib/guide-mini-vue.esm.js";
+import { h, reactive, createVnodeText } from "../../lib/guide-mini-vue.esm.js";
 import { Foo } from "./foo.js";
 
 export const App = {
@@ -9,7 +9,10 @@ export const App = {
       Foo,
       {},
       {
-        header: ({ age }) => h("p", {}, "woshi p" + age),
+        header: ({ age }) => [
+          h("p", {}, "woshi p" + age),
+          createVnodeText("你会"),
+        ],
         footer: () => h("p", {}, "我是p2"),
       }
     );

@@ -1,6 +1,7 @@
 import { isObject } from "../shared/index";
 import { ShapeFlags } from "../shared/ShapeFlage";
 import { createComponentInstance, setupComponent } from "./component";
+import { Fragment, Text } from "./vnode";
 
 export function render(vnode, container) {
   patch(vnode, container);
@@ -10,15 +11,34 @@ function patch(vnode, container) {
   // 去处理 组件
   // patch 判断vnde 是不是一个 element
   // 是element 就去处理element
-  // console.log(vnode.type,ShapeFlags.ELEMENT);
-  const { shapeFlag } = vnode;
-  if (shapeFlag & ShapeFlags.ELEMENT) {
-    processElement(vnode, container);
-  } else if (shapeFlag & ShapeFlags.STATEFUL_COMMPONENT) {
-    processComponent(vnode, container);
+
+  const { shapeFlag, type } = vnode;
+
+  switch (type) {
+    case Fragment:
+      processFragment(vnode, container);
+      break;
+    case Text:
+      processText(vnode, container);
+      break;
+    default:
+      if (shapeFlag & ShapeFlags.ELEMENT) {
+        processElement(vnode, container);
+      } else if (shapeFlag & ShapeFlags.STATEFUL_COMMPONENT) {
+        processComponent(vnode, container);
+      }
   }
 }
 
+function processText(vnode, container) {
+  debugger;
+  const { children } = vnode;
+  const textNode = (vnode.el = document.createTextNode(children));
+  container.append(textNode);
+}
+function processFragment(vnode, container) {
+  mountChilren(vnode, container);
+}
 function processComponent(vnode, container) {
   mountComponent(vnode, container);
 }
@@ -70,12 +90,6 @@ function mountElement(vnode, container) {
 
 function mountChilren(vnode, container) {
   vnode.children.forEach((item) => {
-    // if (Array.isArray(item)) {
-    //   item.forEach((v) => {
-    //     patch(v, container);
-    //   });
-    // } else {
     patch(item, container);
-    // }
   });
 }

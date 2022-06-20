@@ -1,5 +1,6 @@
 import { ShapeFlags } from "../shared/ShapeFlage";
-
+export const Fragment = Symbol("Fragment");
+export const Text = Symbol("Text");
 export function createVNode(type, props?, children?) {
   const vnode = {
     type,
@@ -9,7 +10,7 @@ export function createVNode(type, props?, children?) {
     el: null,
   };
   // h('div',{},children) // children可以是 string 和 array
-  debugger;
+
   if (typeof children === "string") {
     vnode.shapeFlag |= ShapeFlags.TEXT_CHILREN;
   } else if (Array.isArray(children)) {
@@ -27,4 +28,8 @@ function getShapeFlag(type) {
   return typeof type === "string"
     ? ShapeFlags.ELEMENT
     : ShapeFlags.STATEFUL_COMMPONENT;
+}
+
+export function createVnodeText(text: string) {
+  return createVNode(Text, {}, text);
 }
