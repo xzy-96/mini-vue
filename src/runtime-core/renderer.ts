@@ -29,7 +29,6 @@ function mountComponent(initialVnode, container) {
 }
 
 function setupRenderEffect(instance, initialVnode, container) {
-  debugger;
   const { proxy } = instance;
   const subTree = instance.render.call(proxy);
   patch(subTree, container);
@@ -71,6 +70,12 @@ function mountElement(vnode, container) {
 
 function mountChilren(vnode, container) {
   vnode.children.forEach((item) => {
+    // if (Array.isArray(item)) {
+    //   item.forEach((v) => {
+    //     patch(v, container);
+    //   });
+    // } else {
     patch(item, container);
+    // }
   });
 }
