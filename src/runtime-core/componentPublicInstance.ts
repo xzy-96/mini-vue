@@ -18,7 +18,6 @@ export const PublicInstanceProxyHandles = {
     //   return insetance.vnode.el;
     // }
     const publicGeeter = publicPropertiesMap[key];
-    debugger;
     if (publicGeeter) {
       return publicGeeter(insetance);
     }

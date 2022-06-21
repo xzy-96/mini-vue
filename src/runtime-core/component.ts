@@ -30,11 +30,14 @@ function setupStatefulCopmonent(insetance: any) {
 
   insetance.proxy = new Proxy({ _: insetance }, PublicInstanceProxyHandles);
   const { setup } = Compontent;
+
   if (setup) {
+    setCurrentinstance(insetance);
     const setupResult = setup(shallowReadonly(insetance.props), {
       emit: insetance.emit,
     });
     handleSetupResult(insetance, setupResult);
+    setCurrentinstance(null);
   }
 }
 function handleSetupResult(insetance, setupResult: any) {
@@ -49,4 +52,11 @@ function finishComponentSetup(insetance: any) {
   if (Compontent.render) {
     insetance.render = Compontent.render;
   }
+}
+let currentinstance = null;
+export function getCurrentInstance() {
+  return currentinstance;
+}
+function setCurrentinstance(instance) {
+  currentinstance = instance;
 }
