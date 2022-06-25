@@ -10,7 +10,13 @@ function hostPatchProps(el, key, preVal, nextval) {
     const event = key.slice(2).toLowerCase();
     el.addEventListener(event, nextval);
   }
-  el.setAttribute(key, nextval);
+
+  if(nextval === null || nextval === undefined ) {
+    el.removeAttribute(key)
+  }else{
+    el.setAttribute(key, nextval);
+  }
+
 }
 
 function insert(el, parent) {

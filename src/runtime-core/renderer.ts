@@ -81,20 +81,32 @@ export function createRenderer(options) {
     }
   }
   function patchElement(n1, n2, container) {
-    const oldProps = n1.props || {};
-    const newProps = n2.props || {};
+    const oldProps = n1.props ||EMPTY_OBJ;
+    const newProps = n2.props || EMPTY_OBJ;
     const el = (n2.el = n1.el);
     patchProps(el, oldProps, newProps);
   }
-
+  const EMPTY_OBJ = {}
   function patchProps(el, oldProps, newProps) {
-    for (const key in newProps) {
-      const prevProp = oldProps[key];
-      const nextProp = newProps[key];
-      if (oldProps !== newProps) {
-        hostPatchProps(el, key, prevProp, nextProp);
+    console.log(oldProps, newProps,'oldProps, newProps')
+    if(oldProps!== newProps) {
+      for (const key in newProps) {
+        const prevProp = oldProps[key];
+        const nextProp = newProps[key];
+        if (prevProp !== nextProp) {
+          hostPatchProps(el, key, prevProp, nextProp);
+        }
       }
+      if(oldProps !== EMPTY_OBJ){
+        for(const key in oldProps) {
+          if( !(key in newProps) ){
+            hostPatchProps(el, key, oldProps[key], null);
+          }
+        }
+      }
+    
     }
+  
   }
   function mountElement(n2, container, parentComponent) {
     // const vnode = {
