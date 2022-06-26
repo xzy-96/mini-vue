@@ -11,22 +11,34 @@ function hostPatchProps(el, key, preVal, nextval) {
     el.addEventListener(event, nextval);
   }
 
-  if(nextval === null || nextval === undefined ) {
-    el.removeAttribute(key)
-  }else{
+  if (nextval === null || nextval === undefined) {
+    el.removeAttribute(key);
+  } else {
     el.setAttribute(key, nextval);
   }
-
 }
 
-function insert(el, parent) {
-  parent.append(el);
+function insert(child, parent, anchor) {
+  // parent.append(child);
+  parent.insertBefore(child, anchor || null);
 }
 
+function remove(child) {
+  const parent = child.parentNode;
+  if (parent) {
+    parent.removeChild(child);
+  }
+}
+
+function setElementText(el, text) {
+  el.textContent = text;
+}
 const renderer: any = createRenderer({
   createElement,
   hostPatchProps,
   insert,
+  remove,
+  setElementText,
 });
 
 export function createApp(...args) {

@@ -1,7 +1,11 @@
-import { h } from "../../lib/guide-mini-vue.esm.js";
-const nextChildren = [h("div", {}, "c"), h("div", {}, "d")];
-const prevChildren = [h("div", {}, "a"), h("div", {}, "b")];
+import { h, ref } from "../../lib/guide-mini-vue.esm.js";
 
+const prevChildren = [
+  h("div", { key: "a" }, "a"),
+  h("div", { key: "b" }, "b"),
+  h("div", { key: "c" }, "c"),
+];
+const nextChildren = [h("div", { key: "a" }, "a"), h("div", { key: "b" }, "b")];
 export default {
   name: "Arraytotext",
   setup() {

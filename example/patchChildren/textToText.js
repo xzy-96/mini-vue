@@ -1,9 +1,9 @@
-import { h } from "../../lib/guide-mini-vue.esm.js";
+import { h, ref } from "../../lib/guide-mini-vue.esm.js";
 const nextChildren = "newChildren";
 
 const prevChildren = "oldChildren";
 export default {
-  name: "Arraytotext",
+  name: "textToText",
   setup() {
     const isChange = ref(false);
     window.isChange = isChange;
