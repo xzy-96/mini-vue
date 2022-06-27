@@ -7,7 +7,7 @@ import { Fragment, Text } from "./vnode";
 export function createRenderer(options) {
   const {
     hostPatchProps,
-    insert: hostInset,
+    insert: hostInsert,
     createElement: hostCreateElement,
     remove: hostRemove,
     setElementText: hostSetElementText,
@@ -139,6 +139,8 @@ export function createRenderer(options) {
       l2 = c2.length,
       e1 = c1.length - 1,
       e2 = l2 - 1;
+
+    let moved = false;
     function isSomeVNodeType(n1, n2) {
       return n1.type === n2.type && n1.key === n2.key;
     }
@@ -179,6 +181,72 @@ export function createRenderer(options) {
         while (i <= e1) {
           hostRemove(c1[i].el);
           i++;
+        }
+      }
+    } else {
+      // 中间对比
+      let s1 = i; // 老节点的开始
+      let s2 = i; // 新的节点
+      const toBePatched = e2 - s2 + 1; // 要遍历的数量
+      let patched = 0; // 已经patch
+      const newIndexToOldIndexMap = new Array(toBePatched);
+      const keyToNewIndexMap = new Map();
+      let maxNewIndexSoFar = 0;
+      for (let i = 0; i < toBePatched; i++) newIndexToOldIndexMap[i] = 0;
+      for (let i = s2; i <= e2; i++) {
+        let nextChild = c2[i];
+        keyToNewIndexMap.set(nextChild.key, i);
+      }
+      let newIndex; // 中间节点的索引
+      for (let j = s1; j <= e1; j++) {
+        const prveChild = c1[j]; // 当前节点
+        if (patched >= toBePatched) {
+          hostRemove(prveChild.el);
+          continue;
+        }
+        if (prveChild.key !== null) {
+          newIndex = keyToNewIndexMap.get(prveChild.key);
+        } else {
+          for (let j = s2; j <= e2; j++) {
+            if (isSomeVNodeType(prveChild, c2[j])) {
+              newIndex = j;
+              break;
+            }
+          }
+        }
+        if (newIndex === undefined) {
+          hostRemove(prveChild.el);
+        } else {
+          // hostSetElementText()
+          if (newIndex >= maxNewIndexSoFar) {
+            maxNewIndexSoFar = newIndex;
+          } else {
+            moved = true;
+          }
+          newIndexToOldIndexMap[newIndex - s2] = j + 1;
+          patch(prveChild, c2[newIndex], container, parentComponent, null);
+          patched++;
+        }
+      }
+      const increasingNewIndexSequence = moved
+        ? getSequence(newIndexToOldIndexMap)
+        : [];
+      let j = increasingNewIndexSequence.length - 1;
+
+      for (let i = toBePatched - 1; i >= 0; i--) {
+        const nextIndex = i + s2;
+        const nextChild = c2[nextIndex];
+        const anchor = nextIndex + 1 < l2 ? c2[nextIndex + 1].el : null;
+
+        if (newIndexToOldIndexMap[i] === 0) {
+          // 创建新节点
+          patch(null, nextChild, container, parentComponent, anchor);
+        } else if (moved) {
+          if (j < 0 || i !== increasingNewIndexSequence[j]) {
+            hostInsert(nextChild.el, container, anchor);
+          } else {
+            j--;
+          }
         }
       }
     }
@@ -241,7 +309,7 @@ export function createRenderer(options) {
     }
     // container.append(el);
     // document.body.append(el);
-    hostInset(el, container, anchor);
+    hostInsert(el, container, anchor);
   }
 
   function mountChilren(children, container, parentComponent, anchor) {
@@ -252,4 +320,45 @@ export function createRenderer(options) {
   return {
     createApp: createAppAPI(render),
   };
+}
+
+function getSequence(arr) {
+  const p = arr.slice();
+  const result = [0];
+  let i, j, u, v, c;
+  const len = arr.length;
+  for (i = 0; i < len; i++) {
+    const arrI = arr[i];
+    if (arrI !== 0) {
+      j = result[result.length - 1];
+      if (arr[j] < arrI) {
+        p[i] = j;
+        result.push(i);
+        continue;
+      }
+      u = 0;
+      v = result.length - 1;
+      while (u < v) {
+        c = (u + v) >> 1;
+        if (arr[result[c]] < arrI) {
+          u = c + 1;
+        } else {
+          v = c;
+        }
+      }
+      if (arrI < arr[result[u]]) {
+        if (u > 0) {
+          p[i] = result[u - 1];
+        }
+        result[u] = i;
+      }
+    }
+  }
+  u = result.length;
+  v = result[u - 1];
+  while (u-- > 0) {
+    result[u] = v;
+    v = p[v];
+  }
+  return result;
 }
