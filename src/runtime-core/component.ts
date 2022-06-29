@@ -12,6 +12,7 @@ export function createComponentInstance(vnode, parent) {
     type: vnode.type,
     setupState: {},
     props: {},
+    next: null,
     provides: parent ? parent.provides : {},
     parent,
     emit: () => {},

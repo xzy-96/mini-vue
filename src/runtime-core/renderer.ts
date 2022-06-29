@@ -1,6 +1,7 @@
 import { effect } from "../reactivity/effect";
 import { ShapeFlags } from "../shared/ShapeFlage";
 import { createComponentInstance, setupComponent } from "./component";
+import { shouldUpdataComponent } from "./componentUpdataUtil";
 import { createAppAPI } from "./createApp";
 import { Fragment, Text } from "./vnode";
 
@@ -49,22 +50,36 @@ export function createRenderer(options) {
     mountChilren(n2.children, container, parentComponent, anchor);
   }
   function processComponent(n1, n2, container, parentComponent, anchor) {
-    mountComponent(n1, n2, container, parentComponent, anchor);
+    if (!n1) {
+      mountComponent(n2, container, parentComponent, anchor); // 初始化
+    } else {
+      updataComponent(n1, n2); // 更新组件
+    }
   }
-  function mountComponent(
-    n1,
-    initialVnode,
-    container,
-    parentComponent,
-    anchor
-  ) {
-    const instance = createComponentInstance(initialVnode, parentComponent);
+  function updataComponent(n1, n2) {
+    const instance = (n2.component = n1.component);
+    if (shouldUpdataComponent(n1, n2)) {
+      console.log(n1, n2, "组件更新");
+
+      instance.next = n2;
+      instance.update();
+    } else {
+      instance.el = n1.el;
+      instance.vnode = n2;
+    }
+  }
+
+  function mountComponent(initialVnode, container, parentComponent, anchor) {
+    const instance = (initialVnode.component = createComponentInstance(
+      initialVnode,
+      parentComponent
+    ));
     setupComponent(instance);
     setupRenderEffect(instance, initialVnode, container, anchor);
   }
 
   function setupRenderEffect(instance, initialVnode, container, anchor) {
-    effect(() => {
+    instance.update = effect(() => {
       if (!instance.isMounted) {
         console.log("init");
         const { proxy } = instance;
@@ -74,15 +89,26 @@ export function createRenderer(options) {
         initialVnode.el = subTree.el;
         instance.isMounted = true;
       } else {
-        const { proxy } = instance;
+        // 更新
+
+        const { proxy, next, vnode } = instance;
+        if (next) {
+          next.el = vnode.el;
+          updataComponentPreRender(instance, next);
+        }
         const subTree = instance.render.call(proxy);
         const preSubTree = instance.subTree;
         instance.subTree = subTree; // 更新之后 他就是 上一个虚拟节点了
-        patch(preSubTree, subTree, container, instance, anchor);
         console.log(subTree, "subTree");
-        console.log("updata");
+        console.log("updata", preSubTree);
+        patch(preSubTree, subTree, container, instance, anchor);
       }
     });
+  }
+  function updataComponentPreRender(instance, nextVNode) {
+    instance.vnode = nextVNode;
+    instance.next = null;
+    instance.props = nextVNode.props;
   }
   function processElement(
     n1,
