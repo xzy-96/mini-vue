@@ -12,7 +12,7 @@ export function createComponentInstance(vnode, parent) {
     type: vnode.type,
     setupState: {},
     props: {},
-    next: null,
+    next: null, // 下次要更新的虚拟节点
     provides: parent ? parent.provides : {},
     parent,
     emit: () => {},

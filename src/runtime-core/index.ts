@@ -1,3 +1,5 @@
+export { nextTick } from "./scheduler";
+
 export { inject, provide } from "./helpers/apiInject";
 export { getCurrentInstance } from "./component";
 export { createVnodeText } from "./vnode";

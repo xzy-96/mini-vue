@@ -3,6 +3,7 @@ import { ShapeFlags } from "../shared/ShapeFlage";
 import { createComponentInstance, setupComponent } from "./component";
 import { shouldUpdataComponent } from "./componentUpdataUtil";
 import { createAppAPI } from "./createApp";
+import { queueJops } from "./scheduler";
 import { Fragment, Text } from "./vnode";
 
 export function createRenderer(options) {
@@ -79,31 +80,39 @@ export function createRenderer(options) {
   }
 
   function setupRenderEffect(instance, initialVnode, container, anchor) {
-    instance.update = effect(() => {
-      if (!instance.isMounted) {
-        console.log("init");
-        const { proxy } = instance;
-        const subTree = (instance.subTree = instance.render.call(proxy)); // 存起来初始化的 虚拟DOM 更新的时候作对比
-        console.log(subTree, "subTree");
-        patch(null, subTree, container, instance, anchor);
-        initialVnode.el = subTree.el;
-        instance.isMounted = true;
-      } else {
-        // 更新
+    instance.update = effect(
+      () => {
+        if (!instance.isMounted) {
+          console.log("init");
+          const { proxy } = instance;
+          const subTree = (instance.subTree = instance.render.call(proxy)); // 存起来初始化的 虚拟DOM 更新的时候作对比
+          console.log(subTree, "subTree");
+          patch(null, subTree, container, instance, anchor);
+          initialVnode.el = subTree.el;
+          instance.isMounted = true;
+        } else {
+          // 更新
 
-        const { proxy, next, vnode } = instance;
-        if (next) {
-          next.el = vnode.el;
-          updataComponentPreRender(instance, next);
+          const { proxy, next, vnode } = instance;
+          if (next) {
+            next.el = vnode.el;
+            updataComponentPreRender(instance, next);
+          }
+          const subTree = instance.render.call(proxy);
+          const preSubTree = instance.subTree;
+          instance.subTree = subTree; // 更新之后 他就是 上一个虚拟节点了
+          console.log(subTree, "subTree");
+          console.log("updata", preSubTree);
+          patch(preSubTree, subTree, container, instance, anchor);
         }
-        const subTree = instance.render.call(proxy);
-        const preSubTree = instance.subTree;
-        instance.subTree = subTree; // 更新之后 他就是 上一个虚拟节点了
-        console.log(subTree, "subTree");
-        console.log("updata", preSubTree);
-        patch(preSubTree, subTree, container, instance, anchor);
+      },
+      {
+        scheduler() {
+          console.log(111);
+          queueJops(instance.update);
+        },
       }
-    });
+    );
   }
   function updataComponentPreRender(instance, nextVNode) {
     instance.vnode = nextVNode;
@@ -278,7 +287,6 @@ export function createRenderer(options) {
     }
     // unmountChildren(c1.slice(i));
     // mountChilren(c2.slice(i), container, parentComponent);
-    console.log(i);
   }
 
   function unmountChildren(children) {
